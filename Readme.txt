@@ -1,0 +1,25 @@
+Download EJBCA Docker image: 
+    docker pull primekey/ejbca-ce
+
+Setup network bridge to connect EJBCA and database: 
+    docker network create --driver bridge --subnet 172.28.0.0/16 ejbca-bridge
+
+Start MariaDB intance as database: 
+    docker run -d --restart=always --network ejbca-bridge --name ejbca-database -e MYSQL_ROOT_PASSWORD=foo123 -e MYSQL_DATABASE=ejbca -e MYSQL_USER=ejbca -e MYSQL_PASSWORD=ejbca library/mariadb --character-set-server=utf8 --collation-server=utf8_bin
+
+Start EJBCA service and connect to database:
+    docker run -it --rm --network ejbca-bridge -e "DATABASE_JDBC_URL=jdbc:mysql://ejbca-database:3306/ejbca?characterEncoding=UTF-8" -e "DATABASE_USER=ejbca" -e "DATABASE_PASSWORD=ejbca" -p 80:8080 -p 443:8443 -h localhost primekey/ejbca-ce
+
+Import password for superadmin.p12:
+    EVSLHGxrthQEXtoiUpyIplqv
+
+admin.pem: 
+    public key of superadmin.p12, can be obtained from web admin page
+
+ssl.pem: 
+    password protected public and private keys of superadmin.p12. 
+    Can be obtained by "openssl pkcs12 -in superadmin.p12 -out ssl.pem"
+
+To run the test project:
+    1. Start example-app (backend component): "php artisian serve"
+    2. Execute the test scripts in frontend folder
